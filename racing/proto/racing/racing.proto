@@ -1,12 +1,12 @@
 syntax = "proto3";
 package racing;
 
-option go_package = "/racing";
+option go_package = "racing/proto/racing";
 
 import "google/protobuf/timestamp.proto";
 
 service Racing {
-  // ListRaces will return a collection of all races.
+  // ListRaces will return a collection of all races with an optional filter to view visible/invisible races only.
   rpc ListRaces(ListRacesRequest) returns (ListRacesResponse) {}
 }
 
@@ -21,9 +21,10 @@ message ListRacesResponse {
   repeated Race races = 1;
 }
 
-// Filter for listing races.
+// Filters for listing races.
 message ListRacesRequestFilter {
   repeated int64 meeting_ids = 1;
+  optional bool visible = 2;
 }
 
 /* Resources */
