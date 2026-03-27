@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 service Racing {
-  // ListRaces returns a list of all races.
+  // ListRaces will return a collection of all races with an optional filter to view visible/invisible races only.
   rpc ListRaces(ListRacesRequest) returns (ListRacesResponse) {
     option (google.api.http) = { post: "/v1/list-races", body: "*" };
   }
