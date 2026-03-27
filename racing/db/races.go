@@ -17,6 +17,9 @@ type RacesRepo interface {
 	// Init will initialise our races repository.
 	Init() error
 
+	// updateStatus will update the status of races based on their advertised start time.
+	updateStatus() (bool, error)
+
 	// List will return a list of races.
 	List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error)
 }
@@ -40,7 +43,22 @@ func (r *racesRepo) Init() error {
 		err = r.seed()
 	})
 
+	_, err = r.updateStatus()
+	if err != nil {
+		return err
+	}
+
 	return err
+}
+
+// updateStatus will update the status of races based on their advertised start time. If the advertised start time is in the past, the status will be set to "CLOSED", otherwise it will be set to "OPEN".
+func (r *racesRepo) updateStatus() (bool, error) {
+
+	_, err := r.db.Exec(updateStatusQueries()[racesUpdateStatus])
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error) {
@@ -55,6 +73,11 @@ func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race,
 	query, args = r.applyFilter(query, filter)
 
 	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.updateStatus()
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ func (r *racesRepo) seed() error {
 	}
 
 	for i := 1; i <= 100; i++ {
-		statement, err = r.db.Prepare(`INSERT OR IGNORE INTO races(id, meeting_id, name, number, visible, advertised_start_time) VALUES (?,?,?,?,?,?)`)
+		statement, err = r.db.Prepare(`INSERT OR IGNORE INTO races(id, meeting_id, name, number, visible, advertised_start_time,status) VALUES (?,?,?,?,?,?,?)`)
 		if err == nil {
 			_, err = statement.Exec(
 				i,
@@ -22,6 +22,7 @@ func (r *racesRepo) seed() error {
 				faker.Number().Between(1, 12),
 				faker.Number().Between(0, 1),
 				faker.Time().Between(time.Now().AddDate(0, 0, -1), time.Now().AddDate(0, 0, 2)).Format(time.RFC3339),
+				"OPEN",
 			)
 		}
 	}
