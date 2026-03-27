@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RacingClient interface {
-	// ListRaces returns a list of all races.
+	// ListRaces will return a collection of all races with an optional filter to view visible/invisible races only.
 	ListRaces(ctx context.Context, in *ListRacesRequest, opts ...grpc.CallOption) (*ListRacesResponse, error)
 }
 
@@ -43,7 +43,7 @@ func (c *racingClient) ListRaces(ctx context.Context, in *ListRacesRequest, opts
 // All implementations should embed UnimplementedRacingServer
 // for forward compatibility
 type RacingServer interface {
-	// ListRaces returns a list of all races.
+	// ListRaces will return a collection of all races with an optional filter to view visible/invisible races only.
 	ListRaces(context.Context, *ListRacesRequest) (*ListRacesResponse, error)
 }
 

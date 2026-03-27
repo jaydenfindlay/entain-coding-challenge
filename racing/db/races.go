@@ -89,6 +89,19 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 		query += " WHERE " + strings.Join(clauses, " AND ")
 	}
 
+	// AdvertisedStartTimeOrdering is a pointer to a bool, so we can check if it's nil (not set) or not.
+	// If it's set, we order by advertised_start_time in the specified order. If it's not set, we don't apply any ordering.
+	var orderBy string
+	if filter.AdvertisedStartTimeOrdering != nil {
+		if *filter.AdvertisedStartTimeOrdering {
+			orderBy = " ORDER BY advertised_start_time ASC"
+		} else {
+			orderBy = " ORDER BY advertised_start_time DESC"
+		}
+	}
+
+	query += orderBy
+
 	return query, args
 }
 
