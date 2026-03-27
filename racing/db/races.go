@@ -22,6 +22,9 @@ type RacesRepo interface {
 
 	// List will return a list of races.
 	List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error)
+
+	// GetRace will return a single race based on the provided filter.
+	GetRace(filter *racing.GetRaceRequestFilter) (*racing.Race, error)
 }
 
 type racesRepo struct {
@@ -85,6 +88,35 @@ func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race,
 	return r.scanRaces(rows)
 }
 
+func (r *racesRepo) GetRace(filter *racing.GetRaceRequestFilter) (*racing.Race, error) {
+	var (
+		err   error
+		query string
+		args  []interface{}
+	)
+
+	query = getRaceQueries()[racesList] + " WHERE id = ?"
+	args = append(args, filter.RaceId)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.updateStatus()
+	if err != nil {
+		return nil, err
+	}
+	races, err := r.scanRaces(rows)
+	if err != nil {
+		return nil, err
+	}
+	if len(races) == 0 {
+		return nil, nil
+	}
+	return races[0], nil
+}
+
 func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFilter) (string, []interface{}) {
 	var (
 		clauses []string
@@ -137,7 +169,7 @@ func (m *racesRepo) scanRaces(
 		var race racing.Race
 		var advertisedStart time.Time
 
-		if err := rows.Scan(&race.Id, &race.MeetingId, &race.Name, &race.Number, &race.Visible, &advertisedStart); err != nil {
+		if err := rows.Scan(&race.Id, &race.MeetingId, &race.Name, &race.Number, &race.Visible, &advertisedStart, &race.Status); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}
