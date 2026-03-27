@@ -11,6 +11,11 @@ service Racing {
   rpc ListRaces(ListRacesRequest) returns (ListRacesResponse) {
     option (google.api.http) = { post: "/v1/list-races", body: "*" };
   }
+
+  // GetRace will return a single race by its ID
+  rpc GetRace(GetRaceRequest) returns (GetRaceResponse) {
+    option (google.api.http) = { post: "/v1/get-race", body: "*" };
+  }
 }
 
 /* Requests/Responses */
@@ -20,9 +25,19 @@ message ListRacesRequest {
   ListRacesRequestFilter filter = 1;
 }
 
+// Request for GetRace call
+message GetRaceRequest {
+  GetRaceRequestFilter filter = 1;
+}
+
 // Response to ListRaces call.
 message ListRacesResponse {
   repeated Race races = 1;
+}
+
+// Response to GetRace call.
+message GetRaceResponse {
+  Race race = 1;
 }
 
 // Filter for listing races.
@@ -30,6 +45,11 @@ message ListRacesRequestFilter {
   repeated int64 meeting_ids = 1;
   optional bool visible = 2;
   optional bool advertised_start_time_ordering = 3;
+}
+
+// Filters for get race
+message GetRaceRequestFilter {
+  int64 race_id = 1;
 }
 
 /* Resources */
@@ -49,5 +69,5 @@ message Race {
   // AdvertisedStartTime is the time the race is advertised to run.
   google.protobuf.Timestamp advertised_start_time = 6;
   // Current status of the race. Indicates if the advertised start time has passed
-  string status = 6;
+  string status = 7;
 }
