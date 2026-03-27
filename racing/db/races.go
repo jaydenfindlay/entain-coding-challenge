@@ -71,6 +71,11 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 	if filter == nil {
 		return query, args
 	}
+	// Visible is a pointer to a bool, so we can check if it's nil (not set) or not.
+	if filter.Visible != nil {
+		clauses = append(clauses, "visible = ?")
+		args = append(args, *filter.Visible)
+	}
 
 	if len(filter.MeetingIds) > 0 {
 		clauses = append(clauses, "meeting_id IN ("+strings.Repeat("?,", len(filter.MeetingIds)-1)+"?)")
