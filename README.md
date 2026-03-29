@@ -114,3 +114,43 @@ go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway git
 - [Google API Design](https://cloud.google.com/apis/design)
 - [Go Modules](https://golang.org/ref/mod)
 - [Ubers Go Style Guide](https://github.com/uber-go/guide/blob/2910ce2e11d0e0cba2cece2c60ae45e3a984ffe5/style.md)
+
+
+## Change Documentation
+
+Task 1: 
+I added an optional `visible` filter to `ListRacesRequestFilter` in the racing proto and regenerated the protobuf files.
+In `racing/db/races.go`, `applyFilter` now checks whether `filter.Visible` is set and appends a `visible = ?` SQL clause only when provided. This keeps the filter tri-state (`nil`, `true`, `false`) so consumers can request all races, only visible races, or only invisible races.
+
+Task 2: 
+I added optional advertised start time ordering to the racing API via `advertised_start_time_ordering` on `ListRacesRequestFilter`.
+In `racing/db/races.go`, `applyFilter` now appends an `ORDER BY advertised_start_time` clause when the field is present, using ascending order for `true` and descending order for `false`.
+This provides configurable sort direction while maintaining backward compatibility when no ordering flag is supplied.
+
+Task 3:
+I introduced a derived `status` field on race entities and implemented status updates based on `advertised_start_time`.
+In `racing/db/queries.go`, an update query sets status to `CLOSED` when `advertised_start_time < datetime('now')`, otherwise `OPEN`.
+This update is executed before race reads in the repository layer, ensuring responses reflect current race state at request time.
+
+Task 4:
+I added a new `GetRace` RPC in the proto/API contract, including request/response messages and REST gateway mapping.
+The racing service now exposes `GetRace` at the service interface and implementation level (`racing/service/racing.go`).
+In `racing/db/races.go`, I added repository logic to fetch a single race by ID and return it via `GetRaceResponse`.
+
+Task 5:
+I created a separate `sports` service with its own modules (`sports/main.go`, `sports/service`, `sports/db`, and `sports/proto`) rather than coupling it to racing.
+The sports API exposes `ListEvents` (and `GetEvent`) with event models that include `id`, `name`, and `advertised_start_time`, plus similar filtering, ordering, visibility, and derived status behavior.
+I also wired the API gateway to register both racing and sports handlers with separate gRPC endpoints, allowing requests to be routed independently to each backend service.
+
+## Future improvements
+
+- Currently updateStatus only triggers when the database is initialised or when a request is made to fetch something,
+so statuses are not guaranteed to stay accurate at all times.
+A potential improvement would be to run a background goroutine (for example, every 30 seconds) to keep statuses updated,
+so read requests no longer need to trigger status updates.
+
+- A more normalized database design would make the data model easier to understand and reuse.
+Keeping everything in a single table limits flexibility for future features. In the sports service, I separated events and sports so each entity can be referenced and extended independently.
+Applying a similar structure to racing (by extracting reusable entities/fields into related tables) would better support future changes and reduce duplication.
+
+- There are currently no automated test cases in the project, so adding test coverage should be treated as a high-priority next step.

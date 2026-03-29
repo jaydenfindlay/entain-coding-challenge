@@ -6,6 +6,7 @@ import (
 	"syreclabs.com/go/faker"
 )
 
+// seed will prepare our database with some dummy data.
 func (r *racesRepo) seed() error {
 	statement, err := r.db.Prepare(`CREATE TABLE IF NOT EXISTS races (id INTEGER PRIMARY KEY, meeting_id INTEGER, name TEXT, number INTEGER, visible INTEGER, advertised_start_time DATETIME)`)
 	if err == nil {

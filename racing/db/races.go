@@ -17,9 +17,6 @@ type RacesRepo interface {
 	// Init will initialise our races repository.
 	Init() error
 
-	// updateStatus will update the status of races based on their advertised start time.
-	updateStatus() (bool, error)
-
 	// List will return a list of races.
 	List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error)
 
@@ -64,6 +61,7 @@ func (r *racesRepo) updateStatus() (bool, error) {
 	return true, nil
 }
 
+// List will return a list of races based on the provided filter. If the filter is nil, it will return all races.
 func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error) {
 	var (
 		err   error
@@ -88,6 +86,7 @@ func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race,
 	return r.scanRaces(rows)
 }
 
+// GetRace will return a single race based on the provided filter. If no race is found, it will return nil. If the filter is nil, it will return nil.
 func (r *racesRepo) GetRace(filter *racing.GetRaceRequestFilter) (*racing.Race, error) {
 	var (
 		err   error
@@ -117,6 +116,7 @@ func (r *racesRepo) GetRace(filter *racing.GetRaceRequestFilter) (*racing.Race, 
 	return races[0], nil
 }
 
+// applyFilter will apply the provided filter to the query and return the modified query and its arguments.
 func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFilter) (string, []interface{}) {
 	var (
 		clauses []string
@@ -160,6 +160,7 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 	return query, args
 }
 
+// scanRaces will scan the provided rows and return a list of races.
 func (m *racesRepo) scanRaces(
 	rows *sql.Rows,
 ) ([]*racing.Race, error) {
